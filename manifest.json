@@ -1,0 +1,1 @@
+{'name': 'Ο Χαρισμάκης & οι Φίλοι του', 'short_name': 'Χαρισμάκης', 'start_url': '.', 'display': 'standalone', 'background_color': '#f0f4f8', 'theme_color': '#ffa500', 'icons': [{'src': 'charismakis-icon.png', 'sizes': '192x192', 'type': 'image/png'}, {'src': 'charismakis-icon.png', 'sizes': '512x512', 'type': 'image/png'}]}
