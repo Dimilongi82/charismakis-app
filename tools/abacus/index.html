@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Άβακας μέχρι 9.999.999</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fff;}
+    .abacus-wrap{max-width:980px;margin:18px auto;padding:16px;border-radius:16px;border:1px solid rgba(0,0,0,.12);background:#fff}
+    .abacus-top{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;align-items:start}
+    @media (max-width:820px){.abacus-top{grid-template-columns:1fr}}
+    .badge{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.12);margin-bottom:6px}
+    h1{margin:0 0 6px 0;font-size:20px;line-height:1.2}
+    .sub{margin:0;color:rgba(0,0,0,.7);font-size:14px}
+    .panel{border:1px solid rgba(0,0,0,.12);border-radius:14px;padding:12px;display:grid;gap:10px;background:rgba(0,0,0,.02)}
+    .label{font-size:12px;color:rgba(0,0,0,.65);margin-bottom:4px}
+    .value{font-size:26px;font-weight:800;letter-spacing:.3px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{appearance:none;border:1px solid rgba(0,0,0,.18);background:#fff;padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px}
+    .btn:hover{background:rgba(0,0,0,.03)}
+    .btn:active{transform:translateY(1px)}
+    .ghost{background:transparent}
+    .board{margin-top:14px;padding:14px 10px;border-radius:16px;border:1px solid rgba(0,0,0,.12);background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.01));overflow-x:auto}
+    .grid{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:10px;min-width:780px}
+    .col{border-radius:14px;border:1px solid rgba(0,0,0,.10);background:#fff;padding:10px 8px;display:grid;gap:8px}
+    .head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:0 4px}
+    .col-label{font-size:12px;color:rgba(0,0,0,.70);font-weight:800}
+    .col-digit{font-size:14px;font-weight:900}
+    .beads{height:240px;border-radius:14px;border:1px solid rgba(0,0,0,.08);background:rgba(0,0,0,.02);display:grid;grid-template-rows:repeat(9,1fr);gap:8px;padding:10px}
+    .bead{width:100%;border-radius:999px;border:1px solid rgba(0,0,0,.18);background:#fff;cursor:pointer;user-select:none;touch-action:manipulation}
+    .bead.on{background:rgba(0,0,0,.85);border-color:rgba(0,0,0,.85)}
+    .bead:focus{outline:2px solid rgba(0,0,0,.35);outline-offset:2px}
+    .foot{margin-top:10px;color:rgba(0,0,0,.7)}
+    .labels-off .col-label{display:none}
+  </style>
+</head>
+<body>
+  <div id="abacus" class="abacus-wrap">
+    <div class="abacus-top">
+      <div>
+        <span class="badge">Εργαλείο</span>
+        <h1>Άβακας Θέσης Αξίας (μέχρι 9.999.999)</h1>
+        <p class="sub">Πάτα τις χάντρες σε κάθε στήλη για να “χτίσεις” αριθμό. (0–9 ανά θέση)</p>
+      </div>
+
+      <div class="panel">
+        <div>
+          <div class="label">Αριθμός</div>
+          <div id="readout" class="value">0</div>
+        </div>
+        <div class="actions">
+          <button type="button" id="reset" class="btn">Μηδενισμός</button>
+          <button type="button" id="toggle" class="btn ghost">Ετικέτες: ON</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="board" role="group" aria-label="Άβακας μέχρι τα εκατομμύρια">
+      <div id="grid" class="grid"></div>
+    </div>
+
+    <div class="foot">
+      <small>Tip: Αν πατήσεις μια ήδη “ενεργή” χάντρα, μειώνει κατά 1.</small>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const places = [
+      { key: "M",  label: "Εκατομμύρια",      pow: 6 },
+      { key: "HT", label: "Εκατοντάδες χιλ.", pow: 5 },
+      { key: "DT", label: "Δεκάδες χιλ.",     pow: 4 },
+      { key: "T",  label: "Χιλιάδες",         pow: 3 },
+      { key: "H",  label: "Εκατοντάδες",      pow: 2 },
+      { key: "D",  label: "Δεκάδες",          pow: 1 },
+      { key: "U",  label: "Μονάδες",          pow: 0 }
+    ];
+
+    const state = { digits: { M:0, HT:0, DT:0, T:0, H:0, D:0, U:0 }, labelsOn: true };
+
+    const wrap = document.getElementById("abacus");
+    const grid = document.getElementById("grid");
+    const readout = document.getElementById("readout");
+    const btnReset = document.getElementById("reset");
+    const btnToggle = document.getElementById("toggle");
+
+    places.forEach(p => {
+      const col = document.createElement("div");
+      col.className = "col";
+      col.dataset.key = p.key;
+
+      const head = document.createElement("div");
+      head.className = "head";
+
+      const label = document.createElement("div");
+      label.className = "col-label";
+      label.textContent = p.label;
+
+      const digit = document.createElement("div");
+      digit.className = "col-digit";
+      digit.id = `digit_${p.key}`;
+      digit.textContent = "0";
+
+      head.appendChild(label);
+      head.appendChild(digit);
+
+      const beads = document.createElement("div");
+      beads.className = "beads";
+      beads.setAttribute("role","group");
+      beads.setAttribute("aria-label", p.label);
+
+      for(let row=9; row>=1; row--){
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "bead";
+        b.dataset.value = String(row);
+        b.setAttribute("aria-label", `${p.label}: θέσε ${row}`);
+        b.addEventListener("click", () => {
+          const current = state.digits[p.key];
+          const v = row;
+          state.digits[p.key] = (v <= current) ? (v - 1) : v;
+          render();
+        });
+        beads.appendChild(b);
+      }
+
+      col.appendChild(head);
+      col.appendChild(beads);
+      grid.appendChild(col);
+    });
+
+    function computeNumber(){
+      let n = 0;
+      places.forEach(p => n += state.digits[p.key] * (10 ** p.pow));
+      return n;
+    }
+
+    function render(){
+      places.forEach(p => {
+        const col = grid.querySelector(`.col[data-key="${p.key}"]`);
+        const digitEl = document.getElementById(`digit_${p.key}`);
+        const digit = state.digits[p.key];
+        digitEl.textContent = String(digit);
+
+        const beadButtons = Array.from(col.querySelectorAll(".bead"));
+        beadButtons.forEach(btn => {
+          const v = parseInt(btn.dataset.value, 10);
+          if(v <= digit) btn.classList.add("on");
+          else btn.classList.remove("on");
+        });
+      });
+
+      readout.textContent = computeNumber().toLocaleString("el-GR");
+    }
+
+    btnReset.addEventListener("click", () => {
+      Object.keys(state.digits).forEach(k => state.digits[k] = 0);
+      render();
+    });
+
+    btnToggle.addEventListener("click", () => {
+      state.labelsOn = !state.labelsOn;
+      wrap.classList.toggle("labels-off", !state.labelsOn);
+      btnToggle.textContent = state.labelsOn ? "Ετικέτες: ON" : "Ετικέτες: OFF";
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>
