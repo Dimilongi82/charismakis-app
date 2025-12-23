@@ -21,6 +21,19 @@
     .btn:active{transform:translateY(1px)}
     .ghost{background:transparent}
 
+    /* NEW: κουτί “ανάγνωσης” */
+    .words{
+      margin-top:8px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,.12);
+      background:#fff;
+      font-size:14px;
+      line-height:1.35;
+      color:rgba(0,0,0,.85);
+      min-height: 18px;
+    }
+
     .board{margin-top:14px;padding:14px 10px;border-radius:16px;border:1px solid rgba(0,0,0,.12);background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.01));overflow-x:auto}
 
     /* 10 στήλες */
@@ -78,9 +91,15 @@
         <div>
           <div class="label">Αριθμός</div>
           <div id="readout" class="value">0</div>
+
+          <!-- NEW: εδώ θα εμφανίζεται η ανάγνωση -->
+          <div id="words" class="words" aria-live="polite"></div>
         </div>
+
         <div class="actions">
           <button type="button" id="reset" class="btn">Μηδενισμός</button>
+          <!-- NEW: κουμπί ανάγνωσης -->
+          <button type="button" id="readWords" class="btn">Διάβασε τον αριθμό</button>
           <button type="button" id="toggle" class="btn ghost">Ετικέτες: ON</button>
         </div>
       </div>
@@ -118,8 +137,11 @@
     const wrap = document.getElementById("abacus");
     const grid = document.getElementById("grid");
     const readout = document.getElementById("readout");
+    const wordsBox = document.getElementById("words");
+
     const btnReset = document.getElementById("reset");
     const btnToggle = document.getElementById("toggle");
+    const btnReadWords = document.getElementById("readWords");
 
     // Build columns
     places.forEach(p => {
@@ -176,6 +198,71 @@
       return n;
     }
 
+    /* ===== NEW: Ανάγνωση αριθμού στα Ελληνικά (έως 9.999.999.999) ===== */
+    function joinClean(parts){
+      return parts.filter(Boolean).join(" ").replace(/\s+/g," ").trim();
+    }
+
+    function under100(n){
+      const u = ["μηδέν","ένα","δύο","τρία","τέσσερα","πέντε","έξι","επτά","οκτώ","εννέα"];
+      const tenTo19 = ["δέκα","έντεκα","δώδεκα","δεκατρία","δεκατέσσερα","δεκαπέντε","δεκαέξι","δεκαεπτά","δεκαοκτώ","δεκαεννέα"];
+      const tens = ["","", "είκοσι","τριάντα","σαράντα","πενήντα","εξήντα","εβδομήντα","ογδόντα","ενενήντα"];
+      if(n < 10) return u[n];
+      if(n < 20) return tenTo19[n-10];
+      const t = Math.floor(n/10);
+      const r = n%10;
+      if(r === 0) return tens[t];
+      return `${tens[t]} ${u[r]}`;
+    }
+
+    function under1000(n){
+      if(n === 0) return "";
+      const hundreds = ["","εκατό","διακόσια","τριακόσια","τετρακόσια","πεντακόσια","εξακόσια","επτακόσια","οκτακόσια","εννιακόσια"];
+      const h = Math.floor(n/100);
+      const r = n%100;
+      const parts = [];
+      if(h > 0) parts.push(hundreds[h]);
+      if(r > 0) parts.push(under100(r));
+      return joinClean(parts);
+    }
+
+    function numberToGreekWords(n){
+      if(n === 0) return "μηδέν";
+
+      const billions  = Math.floor(n / 1_000_000_000);             // 0..9
+      const millions  = Math.floor((n % 1_000_000_000) / 1_000_000);// 0..999
+      const thousands = Math.floor((n % 1_000_000) / 1_000);        // 0..999
+      const units     = n % 1_000;                                  // 0..999
+
+      const parts = [];
+
+      if(billions){
+        const bWord = under100(billions); // 1..9
+        parts.push(billions === 1 ? "ένα δισεκατομμύριο" : `${bWord} δισεκατομμύρια`);
+      }
+
+      if(millions){
+        const mWord = under1000(millions);
+        parts.push(millions === 1 ? "ένα εκατομμύριο" : `${mWord} εκατομμύρια`);
+      }
+
+      if(thousands){
+        if(thousands === 1){
+          parts.push("χίλια");
+        } else {
+          const thWord = under1000(thousands);
+          parts.push(`${thWord} χιλιάδες`);
+        }
+      }
+
+      if(units){
+        parts.push(under1000(units));
+      }
+
+      return joinClean(parts);
+    }
+    /* ===== END NEW ===== */
+
     function render(){
       places.forEach(p => {
         const col = grid.querySelector(`.col[data-key="${p.key}"]`);
@@ -196,6 +283,7 @@
 
     btnReset.addEventListener("click", () => {
       Object.keys(state.digits).forEach(k => state.digits[k] = 0);
+      wordsBox.textContent = ""; // καθάρισε και την ανάγνωση
       render();
     });
 
@@ -203,6 +291,12 @@
       state.labelsOn = !state.labelsOn;
       wrap.classList.toggle("labels-off", !state.labelsOn);
       btnToggle.textContent = state.labelsOn ? "Ετικέτες: ON" : "Ετικέτες: OFF";
+    });
+
+    // NEW: διάβασε τον αριθμό
+    btnReadWords.addEventListener("click", () => {
+      const num = computeNumber();
+      wordsBox.textContent = numberToGreekWords(num);
     });
 
     render();
