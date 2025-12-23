@@ -35,15 +35,30 @@
 
     .board{margin-top:14px;padding:14px 10px;border-radius:16px;border:1px solid rgba(0,0,0,.12);background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.01));overflow-x:auto}
 
-    /* Flex για να χωράει άνετα + separator */
-    .grid{display:flex;gap:10px;min-width: 1450px; align-items: stretch}
+    /* 10 ακέραιες + 1 κόμμα + 3 δεκαδικές = 14 */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(14,minmax(110px,1fr));
+      gap:10px;
+      min-width: 1650px;
+      align-items:stretch;
+    }
 
-    .col{min-width:110px;border-radius:14px;border:1px solid rgba(0,0,0,.10);background:#fff;padding:10px 8px;display:grid;gap:8px}
+    .col{
+      border-radius:14px;border:1px solid rgba(0,0,0,.10);
+      background:#fff;padding:10px 8px;
+      display:grid;gap:8px;
+    }
     .head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:0 4px}
     .col-label{font-size:12px;color:rgba(0,0,0,.70);font-weight:800}
     .col-digit{font-size:14px;font-weight:900}
 
-    .beads{height:240px;border-radius:14px;border:1px solid rgba(0,0,0,.08);background:rgba(0,0,0,.02);display:grid;grid-template-rows:repeat(9,1fr);gap:8px;padding:10px}
+    .beads{
+      height:240px;border-radius:14px;border:1px solid rgba(0,0,0,.08);
+      background:rgba(0,0,0,.02);
+      display:grid;grid-template-rows:repeat(9,1fr);
+      gap:8px;padding:10px
+    }
 
     .bead{
       width:100%;
@@ -54,12 +69,10 @@
       user-select:none;
       touch-action:manipulation;
     }
-
     .bead.on{
       background: var(--col, rgba(0,0,0,.85));
       border-color: var(--col, rgba(0,0,0,.85));
     }
-
     .bead:focus{outline:2px solid rgba(0,0,0,.35);outline-offset:2px}
     .foot{margin-top:10px;color:rgba(0,0,0,.7)}
     .labels-off .col-label{display:none}
@@ -73,20 +86,18 @@
       opacity:.9;
     }
 
-    /* Διαχωριστικό υποδιαστολής */
+    /* separator “κόμμα” */
     .sep{
-      min-width:28px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
       border-radius:14px;
       border:1px dashed rgba(0,0,0,.22);
       background:rgba(0,0,0,.02);
+      display:flex;
+      align-items:center;
+      justify-content:center;
       font-weight:900;
-      font-size:18px;
+      font-size:20px;
       color:rgba(0,0,0,.65);
       user-select:none;
-      padding: 0 6px;
     }
   </style>
 </head>
@@ -125,7 +136,6 @@
 
   <script>
   (function(){
-    // Ακέραιο μέρος: 10 στήλες (δισεκατομμύρια → μονάδες)
     const placesInt = [
       { key: "B",  label: "Μονάδες δισ.",  pow: 9, color: "#7f1d1d" },
       { key: "HM", label: "Εκατ. εκατ.",   pow: 8, color: "#9a3412" },
@@ -139,11 +149,10 @@
       { key: "U",  label: "Μονάδες",       pow: 0, color: "#be185d" }
     ];
 
-    // Δεκαδικό μέρος: 3 στήλες (δέκατα → χιλιοστά)
     const placesDec = [
-      { key: "TENTH",     label: "Δέκατα",    pow: -1, color: "#0ea5e9" },
-      { key: "HUNDREDTH", label: "Εκατοστά",  pow: -2, color: "#22c55e" },
-      { key: "THOUSANDTH",label: "Χιλιοστά",  pow: -3, color: "#f97316" }
+      { key: "TENTH",      label: "Δέκατα",   pow: -1, color: "#0ea5e9" },
+      { key: "HUNDREDTH",  label: "Εκατοστά", pow: -2, color: "#22c55e" },
+      { key: "THOUSANDTH", label: "Χιλιοστά", pow: -3, color: "#f97316" }
     ];
 
     const state = { digits: {}, labelsOn: true };
@@ -204,121 +213,90 @@
       return col;
     }
 
-    // Build integer columns
+    // 1) ακέραιες στήλες
     placesInt.forEach(p => grid.appendChild(buildColumn(p)));
 
-    // Add separator (comma)
+    // 2) separator (κόμμα)
     const sep = document.createElement("div");
     sep.className = "sep";
     sep.textContent = ",";
     sep.setAttribute("aria-hidden","true");
     grid.appendChild(sep);
 
-    // Build decimal columns
+    // 3) δεκαδικές στήλες
     placesDec.forEach(p => grid.appendChild(buildColumn(p)));
 
-    function computeValue(){
-      // ακέραιο (0..9.999.999.999)
+    function compute(){
       let intN = 0;
       placesInt.forEach(p => intN += state.digits[p.key] * (10 ** p.pow));
-
-      // δεκαδικά 3 ψηφία (000..999)
-      const d1 = state.digits["TENTH"];
-      const d2 = state.digits["HUNDREDTH"];
-      const d3 = state.digits["THOUSANDTH"];
-
+      const d1 = state.digits.TENTH;
+      const d2 = state.digits.HUNDREDTH;
+      const d3 = state.digits.THOUSANDTH;
       return { intN, d1, d2, d3 };
     }
 
-    function formatNumber({intN, d1, d2, d3}){
-      const intStr = intN.toLocaleString("el-GR");
-      return `${intStr},${d1}${d2}${d3}`;
+    function format({intN,d1,d2,d3}){
+      return `${intN.toLocaleString("el-GR")},${d1}${d2}${d3}`;
     }
 
-    /* ===== Ανάγνωση αριθμού στα Ελληνικά (έως 9.999.999.999) ===== */
     function joinClean(parts){
       return parts.filter(Boolean).join(" ").replace(/\s+/g," ").trim();
     }
 
     function under100(n){
-      const u = ["μηδέν","ένα","δύο","τρία","τέσσερα","πέντε","έξι","επτά","οκτώ","εννέα"];
-      const tenTo19 = ["δέκα","έντεκα","δώδεκα","δεκατρία","δεκατέσσερα","δεκαπέντε","δεκαέξι","δεκαεπτά","δεκαοκτώ","δεκαεννέα"];
-      const tens = ["","", "είκοσι","τριάντα","σαράντα","πενήντα","εξήντα","εβδομήντα","ογδόντα","ενενήντα"];
-      if(n < 10) return u[n];
-      if(n < 20) return tenTo19[n-10];
-      const t = Math.floor(n/10);
-      const r = n%10;
-      if(r === 0) return tens[t];
-      return `${tens[t]} ${u[r]}`;
+      const u=["μηδέν","ένα","δύο","τρία","τέσσερα","πέντε","έξι","επτά","οκτώ","εννέα"];
+      const tenTo19=["δέκα","έντεκα","δώδεκα","δεκατρία","δεκατέσσερα","δεκαπέντε","δεκαέξι","δεκαεπτά","δεκαοκτώ","δεκαεννέα"];
+      const tens=["","", "είκοσι","τριάντα","σαράντα","πενήντα","εξήντα","εβδομήντα","ογδόντα","ενενήντα"];
+      if(n<10) return u[n];
+      if(n<20) return tenTo19[n-10];
+      const t=Math.floor(n/10), r=n%10;
+      return r===0 ? tens[t] : `${tens[t]} ${u[r]}`;
     }
 
     function under1000(n){
-      if(n === 0) return "";
-      const hundreds = ["","εκατό","διακόσια","τριακόσια","τετρακόσια","πεντακόσια","εξακόσια","επτακόσια","οκτακόσια","εννιακόσια"];
-      const h = Math.floor(n/100);
-      const r = n%100;
-      const parts = [];
-      if(h > 0) parts.push(hundreds[h]);
-      if(r > 0) parts.push(under100(r));
+      if(n===0) return "";
+      const hundreds=["","εκατό","διακόσια","τριακόσια","τετρακόσια","πεντακόσια","εξακόσια","επτακόσια","οκτακόσια","εννιακόσια"];
+      const h=Math.floor(n/100), r=n%100;
+      const parts=[];
+      if(h>0) parts.push(hundreds[h]);
+      if(r>0) parts.push(under100(r));
       return joinClean(parts);
     }
 
     function numberToGreekWordsInt(n){
-      if(n === 0) return "μηδέν";
+      if(n===0) return "μηδέν";
+      const billions=Math.floor(n/1_000_000_000);
+      const millions=Math.floor((n%1_000_000_000)/1_000_000);
+      const thousands=Math.floor((n%1_000_000)/1_000);
+      const units=n%1_000;
 
-      const billions  = Math.floor(n / 1_000_000_000);              // 0..9
-      const millions  = Math.floor((n % 1_000_000_000) / 1_000_000); // 0..999
-      const thousands = Math.floor((n % 1_000_000) / 1_000);         // 0..999
-      const units     = n % 1_000;                                   // 0..999
-
-      const parts = [];
-
+      const parts=[];
       if(billions){
-        const bWord = under100(billions);
-        parts.push(billions === 1 ? "ένα δισεκατομμύριο" : `${bWord} δισεκατομμύρια`);
+        const b=under100(billions);
+        parts.push(billions===1 ? "ένα δισεκατομμύριο" : `${b} δισεκατομμύρια`);
       }
-
       if(millions){
-        const mWord = under1000(millions);
-        parts.push(millions === 1 ? "ένα εκατομμύριο" : `${mWord} εκατομμύρια`);
+        const m=under1000(millions);
+        parts.push(millions===1 ? "ένα εκατομμύριο" : `${m} εκατομμύρια`);
       }
-
       if(thousands){
-        if(thousands === 1){
-          parts.push("χίλια");
-        } else {
-          const thWord = under1000(thousands);
-          parts.push(`${thWord} χιλιάδες`);
-        }
+        if(thousands===1) parts.push("χίλια");
+        else parts.push(`${under1000(thousands)} χιλιάδες`);
       }
-
-      if(units){
-        parts.push(under1000(units));
-      }
-
+      if(units) parts.push(under1000(units));
       return joinClean(parts);
     }
 
     function decimalWords(d1,d2,d3){
       if(d1===0 && d2===0 && d3===0) return "";
-      const parts = [];
-
-      if(d1){
-        parts.push(`${under100(d1)} ${d1===1 ? "δέκατο" : "δέκατα"}`);
-      }
-      if(d2){
-        parts.push(`${under100(d2)} ${d2===1 ? "εκατοστό" : "εκατοστά"}`);
-      }
-      if(d3){
-        parts.push(`${under100(d3)} ${d3===1 ? "χιλιοστό" : "χιλιοστά"}`);
-      }
-
+      const parts=[];
+      if(d1) parts.push(`${under100(d1)} ${d1===1 ? "δέκατο" : "δέκατα"}`);
+      if(d2) parts.push(`${under100(d2)} ${d2===1 ? "εκατοστό" : "εκατοστά"}`);
+      if(d3) parts.push(`${under100(d3)} ${d3===1 ? "χιλιοστό" : "χιλιοστά"}`);
       return "και " + parts.join(" και ");
     }
-    /* ===== END ===== */
 
     function render(){
-      // update digits + beads (integer + decimals)
       [...placesInt, ...placesDec].forEach(p => {
         const col = grid.querySelector(`.col[data-key="${p.key}"]`);
         const digitEl = document.getElementById(`digit_${p.key}`);
@@ -333,8 +311,8 @@
         });
       });
 
-      const v = computeValue();
-      readout.textContent = formatNumber(v);
+      const v = compute();
+      readout.textContent = format(v);
     }
 
     btnReset.addEventListener("click", () => {
@@ -350,7 +328,7 @@
     });
 
     btnReadWords.addEventListener("click", () => {
-      const { intN, d1, d2, d3 } = computeValue();
+      const {intN,d1,d2,d3} = compute();
       const main = numberToGreekWordsInt(intN);
       const dec = decimalWords(d1,d2,d3);
       wordsBox.textContent = joinClean([main, dec]);
