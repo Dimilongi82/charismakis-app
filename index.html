@@ -4,65 +4,326 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <script src="service-worker.js"></script>
-  <title>Ο Χαρισμάκης & οι Φίλοι του</title>
+  <meta name="theme-color" content="#204a66">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <title>Χαρισμάκης &amp; οι Φίλοι του | Charismakis &amp; Friends</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./charismakis-icon.png">
+  <link rel="apple-touch-icon" href="./charismakis-icon.png">
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: sans-serif;
-      text-align: center;
-      background-color: #f0f4f8;
       margin: 0;
-      padding: 0;
+      padding: 28px 16px;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(145deg, #faf9f5, #e5eef5);
+      color: #173c54;
+      text-align: center;
     }
-    img {
-      width: 150px;
-      margin-top: 20px;
+
+    .container {
+      max-width: 480px;
+      margin: auto;
     }
+
+    .brand {
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      color: #315d7c;
+      margin-bottom: 24px;
+    }
+
+    .mascot {
+      width: 145px;
+      height: 145px;
+      object-fit: contain;
+      border-radius: 30px;
+      background: #ffffff;
+      box-shadow: 0 6px 24px rgba(32,74,102,0.12);
+    }
+
     h1 {
-      color: #cc6600;
-      font-size: 24px;
+      font-size: 29px;
+      margin: 22px 0 8px;
+      line-height: 1.3;
     }
-    .button {
-      display: block;
-      margin: 15px auto;
-      padding: 12px 20px;
-      background-color: #ffa500;
-      color: white;
-      border: none;
-      border-radius: 10px;
+
+    .subtitle {
+      font-size: 18px;
+      color: #315d7c;
+      margin: 0 0 24px;
+    }
+
+    .intro {
       font-size: 16px;
-      text-decoration: none;
-      width: 80%;
-      max-width: 300px;
+      line-height: 1.7;
+      margin-bottom: 30px;
     }
+
+    .english {
+      color: #526675;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .card {
+      display: block;
+      padding: 25px 20px;
+      margin: 18px 0;
+      border-radius: 20px;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 5px 16px rgba(32,74,102,0.08);
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(32,74,102,0.15);
+    }
+
+    .card:focus-visible {
+      outline: 3px solid #477fa6;
+      outline-offset: 4px;
+    }
+
+    .primary {
+      background: #204a66;
+      color: #ffffff;
+    }
+
+    .secondary {
+      background: #ffffff;
+      color: #173c54;
+      border: 1px solid #c5d6e3;
+    }
+
+    .icon {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      display: block;
+      font-weight: bold;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .card-en {
+      display: block;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .description {
+      display: block;
+      margin-top: 15px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .primary .description {
+      color: #e0ecf5;
+    }
+
+    .notice {
+      margin: 25px 0;
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid #c5d6e3;
+      background: rgba(255,255,255,0.65);
+      font-size: 12px;
+      line-height: 1.7;
+      color: #526675;
+    }
+
+    .notice a {
+      color: #204a66;
+    }
+
+    .divider {
+      width: 65px;
+      height: 2px;
+      background: #9ab4c8;
+      margin: 30px auto;
+    }
+
     footer {
-      margin-top: 30px;
-      font-style: italic;
-      color: #666;
+      color: #315d7c;
+      font-size: 15px;
+      line-height: 1.8;
       padding-bottom: 20px;
+    }
+
+    .motto {
+      font-style: italic;
+    }
+
+    .footer-brand {
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-top: 28px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card {
+        transition: none;
+      }
+
+      .card:hover {
+        transform: none;
+      }
     }
   </style>
 </head>
+
 <body>
-  <img src="charismakis-icon.png" alt="Ο Χαρισμάκης">
-  <h1>Ο Χαρισμάκης & οι Φίλοι του</h1>
 
-  <a class="button" href="https://ypatiaedu.blogspot.com/" target="_blank">📚 Μάθε με άρθρα</a>
-  <a class="button" href="https://dimilongi82.github.io/charismakis-app/tools/abacus/">🖼️ Άβακας </a>
-  <a class="button" href="https://ypatiaedu.blogspot.com/2025/04/gpt.html" target="_blank">💎 Για γονείς & εκπαιδευτικούς</a>
+<main class="container">
 
-  <a class="button" href="https://wordwall.net/el/resource/11000079" target="_blank">🎮 Κουίζ 1: Χρόνος - Β'</a>
-  <a class="button" href="https://wordwall.net/el/resource/10999244" target="_blank">🎮 Κουίζ 2: Α' Σύνθετο</a>
-  <a class="button" href="https://wordwall.net/el/resource/10681861" target="_blank">🎮 Κουίζ 3: Ρήματα</a>
-  <a class="button" href="https://wordwall.net/el/resource/66075458" target="_blank">🎮 Κουίζ 4: Υδατάνθρακες - Πρωτεΐνη</a>
-  <a class="button" href="https://wordwall.net/el/resource/51177117" target="_blank">🎮 Κουίζ 5: Φρούτο ή Λαχανικό;</a>
-  <a class="button" href="https://wordwall.net/el/resource/51167948" target="_blank">🎮 Κουίζ 6: Χτύπα τα φρούτα</a>
+  <div class="brand">AEIFOROS ANAPTIXI</div>
 
-  <a class="button" href="https://ypatiaedu.blogspot.com/" target="_blank">🎙️ Μίλα με τον Χαρισμάκη</a>
+  <img class="mascot"
+       src="./charismakis-icon.png"
+       alt="Ο Χαρισμάκης">
+
+  <h1>Χαρισμάκης &amp; οι Φίλοι του</h1>
+
+  <p class="subtitle" lang="en-GB">
+    Charismakis &amp; Friends
+  </p>
+
+  <div class="divider"></div>
+
+  <div class="intro">
+    Ανακάλυψε. Αναρωτήσου. Δημιούργησε.
+    <br>
+    <span class="english" lang="en-GB">
+      Discover. Wonder. Create.
+    </span>
+  </div>
+
+  <!-- ΧΑΡΙΣΜΑΚΗΣ AI -->
+
+  <a class="card primary"
+     href="https://chatgpt.com/g/g-67f01654cb40819186a9a4fa59465b1b-kharismakes"
+     target="_blank"
+     rel="noopener noreferrer">
+
+    <span class="icon" aria-hidden="true">💬</span>
+
+    <span class="card-title">
+      Συνομίλησε με τον Χαρισμάκη AI
+    </span>
+
+    <span class="card-en" lang="en-GB">
+      Chat with Charismakis AI
+    </span>
+
+    <span class="description">
+      Η περιέργεια γίνεται διάλογος.
+      <br>
+      <span lang="en-GB">Curiosity becomes dialogue.</span>
+    </span>
+
+  </a>
+
+  <!-- ΨΗΦΙΑΚΕΣ ΕΦΑΡΜΟΓΕΣ -->
+
+  <a class="card secondary"
+     href="https://sites.google.com/view/aeiforosanaptixi30dim/%CE%B5%CF%81%CE%B3%CE%B1%CE%BB%CE%B5%CE%AF%CE%B1"
+     target="_blank"
+     rel="noopener noreferrer">
+
+    <span class="icon" aria-hidden="true">🧩</span>
+
+    <span class="card-title">
+      Εξερεύνησε τις εφαρμογές
+    </span>
+
+    <span class="card-en" lang="en-GB">
+      Explore the digital apps
+    </span>
+
+    <span class="description">
+      Ψηφιακά εργαλεία, παιχνίδια και δημιουργικές δραστηριότητες.
+      <br>
+      <span lang="en-GB">
+        Digital tools, games and creative activities.
+      </span>
+    </span>
+
+  </a>
+
+  <!-- ΥΠΕΥΘΥΝΗ ΧΡΗΣΗ AI -->
+
+  <div class="notice">
+
+    <strong>
+      Υπεύθυνη χρήση AI | Responsible AI use
+    </strong>
+
+    <p>
+      Ο Χαρισμάκης AI λειτουργεί μέσω ChatGPT.
+      Για παιδιά κάτω των 13 ετών, η αλληλεπίδραση
+      πραγματοποιείται από ενήλικα.
+      Για ανηλίκους 13–17 ετών απαιτείται γονική συναίνεση.
+    </p>
+
+    <p lang="en-GB">
+      Charismakis AI operates through ChatGPT.
+      For children under 13, interaction must be conducted
+      by an adult. Users aged 13–17 require parental consent.
+    </p>
+
+    <a href="https://help.openai.com/en/articles/8313401-is-chatgpt-safe-for-all-ages"
+       target="_blank"
+       rel="noopener noreferrer">
+      Οδηγίες ασφαλούς χρήσης | Safe use guidelines
+    </a>
+
+  </div>
+
+  <div class="divider"></div>
 
   <footer>
-    Με φτερό τη σκέψη και οδηγό τη χαρισματική καρδιά!
+
+    <div class="motto">
+      Με φτερό τη σκέψη και οδηγό τη χαρισματική καρδιά!
+    </div>
+
+    <p class="english" lang="en-GB">
+      With thought as wings and a gifted heart as a guide!
+    </p>
+
+    <div class="footer-brand">
+      AEIFOROS ANAPTIXI
+    </div>
+
   </footer>
+
+</main>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./service-worker.js')
+        .catch(function (error) {
+          console.warn('Service worker:', error);
+        });
+    });
+  }
+</script>
+
 </body>
 </html>
